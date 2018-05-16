@@ -99,6 +99,8 @@ type ClusterSpec struct {
 
 	// etcd cluster TLS configuration
 	TLS *TLSPolicy `json:"TLS,omitempty"`
+
+	Migrating bool `json:"migrating,omitempty"`
 }
 
 // PodPolicy defines the policy to create pod for the etcd container.

@@ -141,7 +141,7 @@ func (c *Cluster) setup() error {
 		}
 	}
 
-	if shouldCreateCluster {
+	if shouldCreateCluster && !c.cluster.Spec.Migrating {
 		return c.create()
 	}
 	return nil
@@ -249,12 +249,15 @@ func (c *Cluster) run() {
 			}
 
 			// On controller restore, we could have "members == nil"
-			if rerr != nil || c.members == nil {
+			if (rerr != nil || c.members == nil) && !c.cluster.Spec.Migrating {
+				c.logger.Info("Updating members from running pod set.")
 				rerr = c.updateMembers(podsToMemberSet(running, c.isSecureClient()))
 				if rerr != nil {
 					c.logger.Errorf("failed to update members: %v", rerr)
 					break
 				}
+			} else {
+				c.logger.Info("Not updating members from running members.")
 			}
 			rerr = c.reconcile(running)
 			if rerr != nil {
