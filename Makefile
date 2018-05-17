@@ -1,3 +1,5 @@
+VERSION = $(shell git describe --tags --always --first-parent)
+
 all: init clean build
 
 build: build-exec build-image
@@ -7,9 +9,13 @@ build-exec:
 	time ./hack/build/build
 
 build-image:
-	@echo "Building docker file"
-	time docker build --tag "etcd-operator:test" -f hack/build/Dockerfile .
-
+	@if [ "$$(docker images -q etcd-operator:$(VERSION) 2> /dev/null)" == "" ]; then \
+		echo "building image!"; \
+		time docker build --tag "etcd-operator:$(VERSION)" -f hack/build/Dockerfile . ; \
+		docker tag "etcd-operator:$(VERSION)" "etcd-operator:latest" ; \
+	else \
+		echo "Building docker file not necessary as etcd-operator:$(VERSION) already exists." ; \
+	fi
 clean:
 	rm -rf _output
 
